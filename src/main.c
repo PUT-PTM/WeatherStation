@@ -1,37 +1,68 @@
-/**
-  ******************************************************************************
-  * @file    main.c
-  * @author  Ac6
-  * @version V1.0
-  * @date    01-December-2013
-  * @brief   Default main function.
-  ******************************************************************************
-*/
-
-
+#include <math.h>
+#include <stdio.h>
+#include <stdint.h>
 #include "stm32f10x.h"
-
-void delay(int time)
-{
-    int i;
-    for (i = 0; i < time * 4000; i++) {}
-}
+#include "lcd.h"
 
 int main(void)
 {
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
+	GPIO_InitTypeDef gpio;
+	SPI_InitTypeDef spi;
+	TIM_TimeBaseInitTypeDef tim;
+	TIM_OCInitTypeDef  channel;
 
-	GPIO_InitTypeDef gpio;  // obiekt gpio bêd¹cy konfiguracj¹ portów GPIO
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOB | RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO, ENABLE);
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);
 
-	GPIO_StructInit(&gpio);  // domyœlna konfiguracja
-	gpio.GPIO_Pin = GPIO_Pin_5;  // konfigurujemy pin 5
-	gpio.GPIO_Mode = GPIO_Mode_Out_PP;  // jako wyjœcie
-	GPIO_Init(GPIOA, &gpio);  // inicjalizacja modu³u GPIOA
+	GPIO_StructInit(&gpio);
+	gpio.GPIO_Pin = GPIO_Pin_5|GPIO_Pin_7; // SCK, MOSI
+	gpio.GPIO_Mode = GPIO_Mode_AF_PP;
+	gpio.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(GPIOA, &gpio);
+
+	gpio.GPIO_Pin = GPIO_Pin_6; // MISO
+	gpio.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(GPIOA, &gpio);
+
+	gpio.GPIO_Pin = LCD_DC|LCD_CE|LCD_RST;
+	gpio.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(GPIOC, &gpio);
+	GPIO_SetBits(GPIOC, LCD_CE|LCD_RST);
+
+	gpio.GPIO_Pin = GPIO_Pin_6;
+	gpio.GPIO_Mode = GPIO_Mode_AF_PP;
+	GPIO_Init(GPIOB, &gpio);
+
+	SPI_StructInit(&spi);
+	spi.SPI_Mode = SPI_Mode_Master;
+	spi.SPI_NSS = SPI_NSS_Soft;
+	spi.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_16;
+	SPI_Init(SPI1, &spi);
+	SPI_Cmd(SPI1, ENABLE);
+
+	TIM_TimeBaseStructInit(&tim);
+	tim.TIM_CounterMode = TIM_CounterMode_Up;
+	tim.TIM_Prescaler = 6400 - 1;
+	tim.TIM_Period = 100 - 1;
+	TIM_TimeBaseInit(TIM4, &tim);
+
+	TIM_OCStructInit(&channel);
+	channel.TIM_OCMode = TIM_OCMode_PWM1;
+	channel.TIM_OutputState = TIM_OutputState_Enable;
+	channel.TIM_Pulse = 0;
+	TIM_OC1Init(TIM4, &channel);
+	TIM_Cmd(TIM4, ENABLE);
+
+	SysTick_Config(SystemCoreClock / 1000);
+
+	lcd_setup();
 
 	while (1) {
-		GPIO_SetBits(GPIOA, GPIO_Pin_5); // zapalenie diody
-		delay(500); // delay
-		GPIO_ResetBits(GPIOA, GPIO_Pin_5); // zgaszenie diody
-		delay(2000);
+		lcd_clear();
+		lcd_draw_text(1, -44, "Temperatura:");
+		lcd_draw_text(4, -44, "Cisnienie:");
+		TIM_SetCompare1(TIM4, fabs(100));
 	}
 }
