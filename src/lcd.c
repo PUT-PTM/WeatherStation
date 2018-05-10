@@ -11,7 +11,7 @@
 #define PCD8544_H_BIAS				0x10
 #define PCD8544_H_VOP				0x80
 
-#define LCD_BUFFER_SIZE			(LCD_WIDTH * LCD_HEIGHT / 8)
+#define LCD_BUFFER_SIZE			(84 * 48 / 8)
 
 uint8_t lcd_buffer[LCD_BUFFER_SIZE];
 
@@ -55,58 +55,18 @@ void lcd_draw_bitmap(const uint8_t* data)
 	memcpy(lcd_buffer, data, LCD_BUFFER_SIZE);
 }
 
-inline void lcd_draw_pixel(int x, int y)
-{
-	lcd_buffer[ x + (y >> 3) * LCD_WIDTH] |= 1 << (y & 7);
-}
-
 void lcd_draw_text(int row, int col, const char* text)
 {
 	int i;
-	uint8_t* pbuf = &lcd_buffer[row * LCD_WIDTH + col];
+	uint8_t* pbuf = &lcd_buffer[row * 84 + col];
 	while ((*text) && (pbuf < &lcd_buffer[LCD_BUFFER_SIZE - 6])) {
 		int ch = *text++;
 		const uint8_t* font = &font_ASCII[ch - ' '][0];
-		for (i = 0; i < 5; i++)
+		for (i = 0; i < 5; i++) {
 			*pbuf++ = *font++;
+		}
 		*pbuf++ = 0;
 	}
-}
-
-void lcd_draw_line(int x1, int y1, int x2, int y2)
-{
-	int dx, dy, sx, sy;
-	if (x2 >= x1) {
-		dx = x2 - x1;
-		sx = 1;
-	} else {
-		dx = x1 - x2;
-		sx = -1;
-	}
-	if (y2 >= y1) {
-		dy = y1 - y2;
-		sy = 1;
-	} else {
-		dy = y2 - y1;
-		sy = -1;
-	}
-
-	int dx2 = dx << 1;
-	int dy2 = dy << 1;
-    int err = dx2 + dy2;
-    while (1) {
-        lcd_draw_pixel(x1, y1);
-        if (err >= dy) {
-            if (x1 == x2) break;
-            err += dy2;
-            x1 += sx;
-        }
-        if (err <= dx) {
-            if (y1 == y2) break;
-            err += dx2;
-            y1 += sy;
-        }
-    }
 }
 
 void lcd_copy(void)

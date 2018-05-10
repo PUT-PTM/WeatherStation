@@ -1,7 +1,7 @@
-#include <math.h>
 #include <stdio.h>
 #include <stdint.h>
 #include "stm32f10x.h"
+#include "delay.h"
 #include "lcd.h"
 
 int main(void)
@@ -59,10 +59,19 @@ int main(void)
 
 	lcd_setup();
 
-	while (1) {
-		lcd_clear();
-		lcd_draw_text(1, -44, "Temperatura:");
-		lcd_draw_text(4, -44, "Cisnienie:");
-		TIM_SetCompare1(TIM4, fabs(100));
-	}
+	lcd_draw_text(1, -44, "Stacja");
+	lcd_draw_text(2, -33, "pogodowa :)");
+	lcd_draw_text(3, -22, "Jakub Lorc");
+	lcd_draw_text(4, -10, "Wojciech");
+	lcd_draw_text(5, -9, "Krasicki");
+	lcd_copy();
+	delay_ms(6000);
+
+	lcd_clear();
+	lcd_draw_text(1, -44, "Temperatura: ");
+	lcd_draw_text(3, -44, "Cisnienie: ");
+	lcd_copy();
+	TIM_SetCompare1(TIM4, fabs((100)));
+
+	while (1) {}
 }
