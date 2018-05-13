@@ -59,6 +59,7 @@ int main(void)
 
 	lcd_setup();
 
+	TIM_SetCompare1(TIM4, fabs((100)));
 	lcd_draw_text(1, -44, "Stacja");
 	lcd_draw_text(2, -33, "pogodowa :)");
 	lcd_draw_text(3, -22, "Jakub Lorc");
@@ -69,9 +70,8 @@ int main(void)
 
 	lcd_clear();
 	lcd_draw_text(1, -44, "Temperatura: ");
-	lcd_draw_text(3, -44, "Cisnienie: ");
+	lcd_draw_text(4, -44, "Wilgotnoci: ");
 	lcd_copy();
-	TIM_SetCompare1(TIM4, fabs((100)));
 
 	while (1) {}
 }
