@@ -109,11 +109,13 @@ int main(void)
 	lcd_setup();
 
 	GPIO_SetBits(GPIOB, GPIO_Pin_8);
-	lcd_draw_text(1, -44, "Stacja");
-	lcd_draw_text(2, -33, "pogodowa :)");
+	lcd_draw_text(1, -44, "Weather");
+	lcd_draw_text(2, -22, "Station :)");
 	lcd_draw_text(3, -22, "Jakub Lorc");
+	lcd_draw_text(4, -14, "Wojciech");
+	lcd_draw_text(5, -14, "Krasicki");
 	lcd_copy();
-	delay_ms(1000);
+	delay_ms(4000);
 
 	while (1) {
 		SHT_StartMeasure();
